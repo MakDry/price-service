@@ -1,13 +1,12 @@
-package com.nau.payservice;
+package com.nau.priceservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PayServiceApplication {
+public class PriceServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(PayServiceApplication.class, args);
+		SpringApplication.run(PriceServiceApplication.class, args);
 	}
-
 }
