@@ -1,0 +1,19 @@
+name: Price Service Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build-and-push:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build & Push the Docker image
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dryzhenko" --password-stdin
+        docker build -t dryzhenko/priceservice .
+        docker push dryzhenko/priceservice
