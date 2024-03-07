@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/prices")
 public class PriceController {
 
     private PriceQueryHandler<PriceDto, String> queryHandler;
@@ -24,7 +24,7 @@ public class PriceController {
         this.commandHandler = commandHandler;
     }
 
-    @GetMapping("/prices")
+    @GetMapping
     public List<PriceDto> getPrices(@RequestParam @Nullable String p) {
         return p == null ? queryHandler.getAll() : queryHandler.getById(p);
     }
