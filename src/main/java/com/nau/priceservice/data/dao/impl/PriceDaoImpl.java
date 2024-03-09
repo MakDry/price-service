@@ -35,7 +35,7 @@ public class PriceDaoImpl implements PriceDao<PriceEntity, String> {
     private static final String SUGGESTED_AMOUNT = "suggestedAmount";
 
     @Override
-    public List<PriceEntity> findById(String id) { // TODO: This method might be unnecessary
+    public List<PriceEntity> findById(String id) {
         List<PriceEntity> prices = new ArrayList<>();
         prices.add(template.findById(id, PriceEntity.class));
         if (prices.get(0) == null)

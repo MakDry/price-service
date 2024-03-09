@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PriceDao<T extends PriceEntity, K extends String> extends Dao<T, K> {
-    List<T> findById(K k);
 
     List<T> getAllPricesOfProduct(K k);
 
