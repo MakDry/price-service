@@ -66,34 +66,47 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
             throw new InvalidPriceException();
         }
 
-        PriceEntity updatedPrice = dtoMapper.mapFromDto(priceDto);
+        PriceEntity priceToUpdate = dtoMapper.mapFromDto(priceDto);
 
         if (priceDao.findById(priceDto.getId()).isEmpty()) {
-            updatedPrice.setId("");
-            priceDao.save(updatedPrice);
-            return true;
+            logger.warn("In class {} in method update() wasn't found any entities with id: {}",
+                    PriceServiceImpl.class.getSimpleName(), priceDto.getId());
+            return false;
         } else {
-            if (priceDao.update(updatedPrice)) {
+            if (priceDao.update(priceToUpdate)) {
                 return true;
             } else {
-                logger.warn("In class {} method update() couldn't update next entity properly: {}",
-                        PriceServiceImpl.class.getSimpleName(), updatedPrice);
-                throw new InvalidPriceException();
+                logger.error("In class {} method update() couldn't update next entity properly: {}",
+                        PriceServiceImpl.class.getSimpleName(), priceToUpdate);
+                return false;
             }
         }
     }
 
     @Override
     public Optional<PriceDto> delete(String id) throws InvalidPriceException {
-        PriceEntity foundEntity = priceDao.findById(id).get(0);
+        PriceEntity priceToDelete = priceDao.findById(id).get(0);
 
-        if (foundEntity == null) {
+        if (priceToDelete == null) {
             logger.warn("In class {} method delete() couldn't find any entity with id: {}",
                     PriceServiceImpl.class.getSimpleName(), id);
             throw new InvalidPriceException();
         } else {
-            priceDao.delete(foundEntity);
+            priceDao.delete(priceToDelete);
         }
-        return Optional.ofNullable(dtoMapper.mapToDto(foundEntity));
+        return Optional.of(dtoMapper.mapToDto(priceToDelete));
+    }
+
+    @Override
+    public List<PriceDto> getAllPricesOfProduct(String id) {
+        return priceDao.getAllPricesOfProduct(id).stream()
+                .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
+                .toList();
+    }
+
+    @Override
+    public Optional<PriceDto> getOnePriceOfProduct(String id, String productId) throws InvalidPriceException {
+        return Optional.ofNullable(dtoMapper.mapToDto(priceDao.getOnePriceOfProduct(id, productId)
+                .orElseThrow(InvalidPriceException::new)));
     }
 }
