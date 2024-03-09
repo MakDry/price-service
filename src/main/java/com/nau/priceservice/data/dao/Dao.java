@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Dao<T, K> {
-    List<T> findById(K k);
-
     List<T> findAll();
 
     Optional<T> save(T t);

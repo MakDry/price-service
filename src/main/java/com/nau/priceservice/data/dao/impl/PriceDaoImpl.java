@@ -27,6 +27,7 @@ public class PriceDaoImpl implements PriceDao<PriceEntity, String> {
     private static final Logger logger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
     private static final String ID = "id";
+    private static final String PRODUCT_ID = "productId";
     private static final String CURRENCY = "currency";
     private static final String UNIT_AMOUNT = "unitAmount";
     private static final String UNIT_AMOUNT_DECIMAL = "unitAmountDecimal";
@@ -34,13 +35,33 @@ public class PriceDaoImpl implements PriceDao<PriceEntity, String> {
     private static final String SUGGESTED_AMOUNT = "suggestedAmount";
 
     @Override
-    public List<PriceEntity> findById(String id) {
+    public List<PriceEntity> findById(String id) { // TODO: This method might be unnecessary
         List<PriceEntity> prices = new ArrayList<>();
         prices.add(template.findById(id, PriceEntity.class));
         if (prices.get(0) == null)
             logger.info("In class {} wasn't found any entities with id: {} by findId()",
                     PriceDaoImpl.class.getSimpleName(), id);
         return prices;
+    }
+
+    @Override
+    public List<PriceEntity> getAllPricesOfProduct(String productId) {
+        Query query = new Query().addCriteria(Criteria.where(PRODUCT_ID).is(productId));
+        List<PriceEntity> prices = template.find(query, PriceEntity.class);
+        if (prices.isEmpty())
+            logger.info("In class {} wasn't found any prices with productId: {} by getAllPricesOfProduct()",
+                    PriceDaoImpl.class.getSimpleName(), productId);
+        return prices;
+    }
+
+    @Override
+    public Optional<PriceEntity> getOnePriceOfProduct(String id, String productId) {
+        Query query = new Query().addCriteria(Criteria.where(ID).is(id).and(PRODUCT_ID).is(productId));
+        List<PriceEntity> price = template.find(query, PriceEntity.class);
+        if (price.isEmpty())
+            logger.info("In class {} wasn't found any price with id: {}, and productId: {} by getOnePriceOfProduct()",
+                    PriceDaoImpl.class.getSimpleName(), id, productId);
+        return Optional.ofNullable(price.get(0));
     }
 
     @Override
