@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Logger;
 import com.nau.priceservice.data.dao.interfaces.ProductDao;
 import com.nau.priceservice.data.entity.ProductEntity;
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
-import com.nau.priceservice.exceptions.price.InvalidProductException;
+import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.service.interfaces.ProductService;
 import com.nau.priceservice.util.dto.ProductDto;
 import com.nau.priceservice.util.mappers.DtoMapper;

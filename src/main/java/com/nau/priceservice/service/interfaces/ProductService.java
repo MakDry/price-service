@@ -1,7 +1,7 @@
 package com.nau.priceservice.service.interfaces;
 
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
-import com.nau.priceservice.exceptions.price.InvalidProductException;
+import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.service.Service;
 import com.nau.priceservice.util.dto.ProductDto;
 
