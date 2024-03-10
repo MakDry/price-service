@@ -12,8 +12,6 @@ public class PriceDto {
     private double purchasePrice;
     private double suggestedAmount;
 
-    public PriceDto() { }
-
     public String getId() {
         return id;
     }
