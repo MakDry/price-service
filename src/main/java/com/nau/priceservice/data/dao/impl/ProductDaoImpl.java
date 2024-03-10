@@ -27,14 +27,14 @@ public class ProductDaoImpl implements ProductDao<ProductEntity, String> {
     private static final Logger logger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
     private static final String ID = "id";
-    private static final String TITLE = "location";
+    private static final String TITLE = "title";
 
     @Override
     public List<ProductEntity> findById(String id) {
         List<ProductEntity> products = new ArrayList<>();
         products.add(template.findById(id, ProductEntity.class));
         if (products.get(0) == null)
-            logger.info("In class {} wasn't found any entities with id: {} by findId()",
+            logger.info("In class {} wasn't found any entities with id: {} by findById()",
                     ProductDaoImpl.class.getSimpleName(), id);
         return products;
     }
