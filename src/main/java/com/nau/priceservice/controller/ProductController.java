@@ -1,46 +1,87 @@
 package com.nau.priceservice.controller;
 
-import com.mongodb.lang.Nullable;
 import com.nau.priceservice.module.price.PriceCommand;
+import com.nau.priceservice.module.price.PriceQuery;
 import com.nau.priceservice.module.price.interfaces.PriceCommandHandler;
 import com.nau.priceservice.module.price.interfaces.PriceQueryHandler;
+import com.nau.priceservice.module.product.ProductCommand;
+import com.nau.priceservice.module.product.ProductQuery;
+import com.nau.priceservice.module.product.interfaces.ProductCommandHandler;
+import com.nau.priceservice.module.product.interfaces.ProductQueryHandler;
 import com.nau.priceservice.util.dto.PriceDto;
+import com.nau.priceservice.util.dto.ProductDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping
-public class PriceController {
+@RequestMapping("/products")
+public class ProductController {
 
-    private PriceQueryHandler<PriceDto, String> queryHandler;
-    private PriceCommandHandler<PriceDto, PriceCommand> commandHandler;
+    private ProductQueryHandler<ProductDto, ProductQuery> productQueryHandler;
+    private PriceQueryHandler<PriceDto, PriceQuery> priceQueryHandler;
+    private ProductCommandHandler<ProductDto, ProductCommand> productCommandHandler;
+    private PriceCommandHandler<PriceDto, PriceCommand> priceCommandHandler;
 
     @Autowired
-    public PriceController(PriceQueryHandler<PriceDto, String> queryHandler,
-                           PriceCommandHandler<PriceDto, PriceCommand> commandHandler) {
-        this.queryHandler = queryHandler;
-        this.commandHandler = commandHandler;
+    public ProductController(ProductQueryHandler<ProductDto, ProductQuery> productQueryHandler,
+                             PriceQueryHandler<PriceDto, PriceQuery> priceQueryHandler,
+                             ProductCommandHandler<ProductDto, ProductCommand> productCommandHandler,
+                             PriceCommandHandler<PriceDto, PriceCommand> priceCommandHandler) {
+        this.productQueryHandler = productQueryHandler;
+        this.priceQueryHandler = priceQueryHandler;
+        this.productCommandHandler = productCommandHandler;
+        this.priceCommandHandler = priceCommandHandler;
+    }
+
+    @GetMapping
+    public List<ProductDto> getAllProducts() {
+        return productQueryHandler.getAll();
+    }
+
+    @GetMapping(params = {"p"})
+    public boolean isProductExists(@RequestParam(name = "p") String productId) {
+        return productQueryHandler.isExists(productId);
+    }
+
+    @PostMapping
+    public ProductDto createProduct(@RequestBody ProductCommand productCommand) {
+        return productCommandHandler.handleCreate(productCommand);
+    }
+
+    @PostMapping("/{productId}")
+    public ProductDto updateProduct(@PathVariable String productId, @RequestBody ProductCommand productCommand) {
+        return productCommandHandler.handleUpdate(productId, productCommand);
+    }
+
+    @DeleteMapping("/{productId}")
+    public ProductQuery deleteProduct(@PathVariable String productId) {
+        return productCommandHandler.handleDelete(productId);
     }
 
     @GetMapping("/prices")
-    public List<PriceDto> getPrices(@RequestParam @Nullable String p) {
-        return p == null ? queryHandler.getAll() : queryHandler.getById(p);
+    public List<PriceDto> getAllPricesOfProduct(@RequestParam(name = "p", required = false) String productId) {
+        return productId == null ? priceQueryHandler.getAll() : priceQueryHandler.getAllPricesOfProduct(productId);
     }
 
-    @PostMapping("/price")
-    public PriceDto createPrice(@RequestBody PriceCommand priceCommand) {
-        return commandHandler.handleCreate(priceCommand);
+    @GetMapping("/{productId}/prices/{priceId}")
+    public PriceDto getOnePriceOfProduct(@PathVariable String priceId, @PathVariable String productId) {
+        return priceQueryHandler.getOnePriceOfProduct(priceId, productId);
     }
 
-    @PostMapping("/price/{p}")
-    public PriceDto updatePrice(@PathVariable String p, @RequestBody PriceCommand priceCommand) {
-        return commandHandler.handleUpdate(p, priceCommand);
+    @PostMapping("/prices/{priceId}")
+    public PriceDto updatePrice(@PathVariable String priceId, @RequestBody PriceCommand priceCommand) {
+        return priceCommandHandler.handleUpdate(priceId, priceCommand);
     }
 
-    @DeleteMapping("/price/{p}")
-    public String deletePrice(@PathVariable String p) {
-        return commandHandler.handleDelete(p);
+    @DeleteMapping("/prices/{priceId}")
+    public String deletePrice(@PathVariable String priceId) {
+        return priceCommandHandler.handleDelete(priceId);
+    }
+
+    @PostMapping("/{productId}/prices")
+    public PriceDto createPrice(@PathVariable String productId, @RequestBody PriceCommand priceCommand) {
+        return priceCommandHandler.handleCreate(priceCommand, productId);
     }
 }
