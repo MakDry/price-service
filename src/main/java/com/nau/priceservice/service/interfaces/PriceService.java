@@ -8,13 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PriceService<T extends PriceDto> extends Service<T> {
-    List<T> getById(String id);
 
     Optional<T> save(T t) throws InvalidPriceException;
 
-    boolean update(T t) throws InvalidPriceException;
-
-    Optional<T> delete(String id) throws InvalidPriceException;
+    T update(T t) throws InvalidPriceException;
 
     List<T> getAllPricesOfProduct(String id);
 

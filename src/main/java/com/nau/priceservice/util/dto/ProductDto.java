@@ -8,8 +8,6 @@ public class ProductDto {
     private String externalId;
     private String title;
 
-    public ProductDto() { }
-
     public String getId() {
         return id;
     }

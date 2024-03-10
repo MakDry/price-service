@@ -3,7 +3,6 @@ package com.nau.priceservice.service.impl;
 import ch.qos.logback.classic.Logger;
 import com.nau.priceservice.data.dao.interfaces.ProductDao;
 import com.nau.priceservice.data.entity.ProductEntity;
-import com.nau.priceservice.exceptions.price.InvalidPriceException;
 import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.service.interfaces.ProductService;
 import com.nau.priceservice.util.dto.ProductDto;
@@ -50,26 +49,26 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
     }
 
     @Override
-    public boolean update(ProductDto productDto) throws InvalidPriceException {
+    public ProductDto update(ProductDto productDto) throws InvalidProductException {
         if (productDto.getId().equals("") || productDto.getTitle().equals("")) {
             logger.error("In class {} was send entity without initialized fields, to update(): {}",
                     ProductServiceImpl.class.getSimpleName(), productDto);
-            throw new InvalidPriceException();
+            throw new InvalidProductException();
         }
-
-        ProductEntity productToUpdate = dtoMapper.mapFromDto(productDto);
 
         if (!productDao.isExists(productDto.getId())) {
             logger.warn("In class {} in method update() wasn't found any entities with id: {}",
                     ProductServiceImpl.class.getSimpleName(), productDto.getId());
-            return false;
+            throw new InvalidProductException();
         } else {
+            ProductEntity productToUpdate = productDao.findById(productDto.getId()).get(0);
+            productToUpdate.setTitle(productDto.getTitle());
             if (productDao.update(productToUpdate)) {
-                return true;
+                return dtoMapper.mapToDto(productToUpdate);
             } else {
                 logger.error("In class {} method update() couldn't update next entity properly: {}",
                         ProductServiceImpl.class.getSimpleName(), productToUpdate);
-                return false;
+                throw new InvalidProductException();
             }
         }
     }

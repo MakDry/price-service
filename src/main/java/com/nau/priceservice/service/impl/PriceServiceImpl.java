@@ -31,13 +31,6 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
     }
 
     @Override
-    public List<PriceDto> getById(String id) {
-        return priceDao.findById(id).stream()
-                .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
-                .toList();
-    }
-
-    @Override
     public List<PriceDto> getAll() {
         return priceDao.findAll().stream()
                 .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
@@ -46,8 +39,9 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
 
     @Override
     public Optional<PriceDto> save(PriceDto priceDto) throws InvalidPriceException {
-        if (priceDto.getCurrency() == null || priceDto.getUnitAmount() == 0 || priceDto.getUnitAmountDecimal() == 0.0
-            || priceDto.getPurchasePrice() == 0 || priceDto.getSuggestedAmount() == 0) {
+        if (priceDto.getProductId().equals("") || priceDto.getCurrency().equals("") || priceDto.getUnitAmount() == 0
+                || priceDto.getUnitAmountDecimal() == 0.0 || priceDto.getPurchasePrice() == 0
+                || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to save(): {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto);
             throw new InvalidPriceException();
@@ -57,8 +51,8 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
     }
 
     @Override
-    public boolean update(PriceDto priceDto) throws InvalidPriceException {
-        if (priceDto.getId().equals("") || priceDto.getCurrency() == null || priceDto.getUnitAmount() == 0
+    public PriceDto update(PriceDto priceDto) throws InvalidPriceException {
+        if (priceDto.getId().equals("") || priceDto.getCurrency().equals("") || priceDto.getUnitAmount() == 0
                 || priceDto.getUnitAmountDecimal() == 0.0 || priceDto.getPurchasePrice() == 0
                 || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to update(): {}",
@@ -71,14 +65,15 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
         if (priceDao.findById(priceDto.getId()).isEmpty()) {
             logger.warn("In class {} in method update() wasn't found any entities with id: {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto.getId());
-            return false;
+            throw new InvalidPriceException();
         } else {
+            priceToUpdate.setProductId(priceDao.findById(priceDto.getId()).get(0).getProductId());
             if (priceDao.update(priceToUpdate)) {
-                return true;
+                return dtoMapper.mapToDto(priceToUpdate);
             } else {
                 logger.error("In class {} method update() couldn't update next entity properly: {}",
                         PriceServiceImpl.class.getSimpleName(), priceToUpdate);
-                return false;
+                throw new InvalidPriceException();
             }
         }
     }
@@ -98,8 +93,8 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
     }
 
     @Override
-    public List<PriceDto> getAllPricesOfProduct(String id) {
-        return priceDao.getAllPricesOfProduct(id).stream()
+    public List<PriceDto> getAllPricesOfProduct(String productId) {
+        return priceDao.getAllPricesOfProduct(productId).stream()
                 .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
                 .toList();
     }
