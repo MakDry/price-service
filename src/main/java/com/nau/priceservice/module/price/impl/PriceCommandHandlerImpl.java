@@ -1,6 +1,7 @@
 package com.nau.priceservice.module.price.impl;
 
 import ch.qos.logback.classic.Logger;
+import com.nau.priceservice.exceptions.InvalidDtoException;
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
 import com.nau.priceservice.module.price.PriceCommand;
 import com.nau.priceservice.module.price.interfaces.PriceCommandHandler;
@@ -19,8 +20,9 @@ public class PriceCommandHandlerImpl implements PriceCommandHandler<PriceDto, Pr
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
 
     @Override
-    public PriceDto handleCreate(PriceCommand priceCommand) {
+    public PriceDto handleCreate(PriceCommand priceCommand, String productId) {
         PriceDto priceDto = buildPriceDto(priceCommand);
+        priceDto.setProductId(productId);
         try {
             priceDto = priceService.save(priceDto).orElseThrow(InvalidPriceException::new);
         } catch (InvalidPriceException e) {
@@ -32,15 +34,15 @@ public class PriceCommandHandlerImpl implements PriceCommandHandler<PriceDto, Pr
 
     @Override
     public PriceDto handleUpdate(String id, PriceCommand priceCommand) {
-        PriceDto priceDto = buildPriceDto(priceCommand);
-        priceDto.setId(id);
+        PriceDto priceToUpdate = buildPriceDto(priceCommand);
+        priceToUpdate.setId(id);
         try {
-            priceService.update(priceDto);
+            priceToUpdate = priceService.update(priceToUpdate);
         } catch (InvalidPriceException e) {
             logger.error("In class {} method handleUpdate() couldn't update next object: {}, and get next:\n{}",
-                    PriceCommandHandlerImpl.class.getSimpleName(), priceDto, e);
+                    PriceCommandHandlerImpl.class.getSimpleName(), priceToUpdate, e);
         }
-        return priceDto;
+        return priceToUpdate;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class PriceCommandHandlerImpl implements PriceCommandHandler<PriceDto, Pr
             } else {
                 throw new IllegalArgumentException();
             }
-        } catch (InvalidPriceException | IllegalArgumentException e) {
+        } catch (InvalidDtoException | IllegalArgumentException e) {
             logger.error("In class {} method handleDelete() couldn't delete object wit id {}, and get next:\n{}",
                     PriceCommandHandlerImpl.class.getSimpleName(), id, e);
         }
@@ -60,7 +62,6 @@ public class PriceCommandHandlerImpl implements PriceCommandHandler<PriceDto, Pr
 
     private PriceDto buildPriceDto(PriceCommand priceCommand) {
         PriceDto priceDto = new PriceDto();
-        priceDto.setProductId(""); // TODO: Rewrite the product id assignment logic
         priceDto.setCurrency(priceCommand.getCurrency());
         priceDto.setUnitAmount(priceCommand.getUnitAmount());
         priceDto.setUnitAmountDecimal(priceCommand.getUnitAmountDecimal());
