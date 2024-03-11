@@ -25,6 +25,9 @@
 			<properties>
 				<spring.profiles.active>dev</spring.profiles.active>
 				<db.host>localhost</db.host>
+				<db.port>27017</db.port>
+				<rabbitmq.host>localhost</rabbitmq.host>
+				<rabbitmq.port>5672</rabbitmq.port>
 			</properties>
 		</profile>
 		<profile>
@@ -32,6 +35,9 @@
 			<properties>
 				<spring.profiles.active>prod</spring.profiles.active>
 				<db.host>price-mongo-clusterip-service</db.host>
+				<db.port>27017</db.port>
+				<rabbitmq.host>rabbitmq-clusterip-service</rabbitmq.host>
+				<rabbitmq.port>5672</rabbitmq.port>
 			</properties>
 		</profile>
 	</profiles>
@@ -39,6 +45,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.amqp</groupId>
+			<artifactId>spring-rabbit</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 
 		<dependency>
