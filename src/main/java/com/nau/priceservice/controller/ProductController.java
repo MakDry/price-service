@@ -11,6 +11,7 @@ import com.nau.priceservice.module.product.interfaces.ProductQueryHandler;
 import com.nau.priceservice.util.dto.PriceDto;
 import com.nau.priceservice.util.dto.ProductDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,11 +47,13 @@ public class ProductController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductCommand productCommand) {
         return productCommandHandler.handleCreate(productCommand);
     }
 
     @PostMapping("/{productId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public ProductDto updateProduct(@PathVariable String productId, @RequestBody ProductCommand productCommand) {
         return productCommandHandler.handleUpdate(productId, productCommand);
     }
@@ -71,6 +74,7 @@ public class ProductController {
     }
 
     @PostMapping("/prices/{priceId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public PriceDto updatePrice(@PathVariable String priceId, @RequestBody PriceCommand priceCommand) {
         return priceCommandHandler.handleUpdate(priceId, priceCommand);
     }
@@ -81,6 +85,7 @@ public class ProductController {
     }
 
     @PostMapping("/{productId}/prices")
+    @ResponseStatus(HttpStatus.CREATED)
     public PriceDto createPrice(@PathVariable String productId, @RequestBody PriceCommand priceCommand) {
         return priceCommandHandler.handleCreate(priceCommand, productId);
     }
