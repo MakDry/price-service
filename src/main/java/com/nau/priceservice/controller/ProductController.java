@@ -1,5 +1,8 @@
 package com.nau.priceservice.controller;
 
+import com.nau.priceservice.exceptions.InvalidDtoException;
+import com.nau.priceservice.exceptions.price.InvalidPriceException;
+import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.module.price.PriceCommand;
 import com.nau.priceservice.module.price.PriceQuery;
 import com.nau.priceservice.module.price.interfaces.PriceCommandHandler;
@@ -11,6 +14,7 @@ import com.nau.priceservice.module.product.interfaces.ProductQueryHandler;
 import com.nau.priceservice.util.dto.PriceDto;
 import com.nau.priceservice.util.dto.ProductDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,17 +50,20 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductDto createProduct(@RequestBody ProductCommand productCommand) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto createProduct(@RequestBody ProductCommand productCommand) throws InvalidProductException {
         return productCommandHandler.handleCreate(productCommand);
     }
 
     @PostMapping("/{productId}")
-    public ProductDto updateProduct(@PathVariable String productId, @RequestBody ProductCommand productCommand) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto updateProduct(@PathVariable String productId, @RequestBody ProductCommand productCommand)
+            throws InvalidDtoException {
         return productCommandHandler.handleUpdate(productId, productCommand);
     }
 
     @DeleteMapping("/{productId}")
-    public ProductQuery deleteProduct(@PathVariable String productId) {
+    public ProductQuery deleteProduct(@PathVariable String productId) throws InvalidDtoException {
         return productCommandHandler.handleDelete(productId);
     }
 
@@ -71,17 +78,21 @@ public class ProductController {
     }
 
     @PostMapping("/prices/{priceId}")
-    public PriceDto updatePrice(@PathVariable String priceId, @RequestBody PriceCommand priceCommand) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public PriceDto updatePrice(@PathVariable String priceId, @RequestBody PriceCommand priceCommand)
+            throws InvalidDtoException {
         return priceCommandHandler.handleUpdate(priceId, priceCommand);
     }
 
     @DeleteMapping("/prices/{priceId}")
-    public String deletePrice(@PathVariable String priceId) {
+    public String deletePrice(@PathVariable String priceId) throws InvalidDtoException {
         return priceCommandHandler.handleDelete(priceId);
     }
 
     @PostMapping("/{productId}/prices")
-    public PriceDto createPrice(@PathVariable String productId, @RequestBody PriceCommand priceCommand) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public PriceDto createPrice(@PathVariable String productId, @RequestBody PriceCommand priceCommand)
+            throws InvalidPriceException {
         return priceCommandHandler.handleCreate(priceCommand, productId);
     }
 }

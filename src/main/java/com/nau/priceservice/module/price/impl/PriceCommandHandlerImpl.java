@@ -1,13 +1,11 @@
 package com.nau.priceservice.module.price.impl;
 
-import ch.qos.logback.classic.Logger;
 import com.nau.priceservice.exceptions.InvalidDtoException;
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
 import com.nau.priceservice.module.price.PriceCommand;
 import com.nau.priceservice.module.price.interfaces.PriceCommandHandler;
 import com.nau.priceservice.service.interfaces.PriceService;
 import com.nau.priceservice.util.dto.PriceDto;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,48 +14,24 @@ public class PriceCommandHandlerImpl implements PriceCommandHandler<PriceDto, Pr
 
     @Autowired
     private PriceService<PriceDto> priceService;
-    private static final Logger logger =
-            (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
 
     @Override
-    public PriceDto handleCreate(PriceCommand priceCommand, String productId) {
+    public PriceDto handleCreate(PriceCommand priceCommand, String productId) throws InvalidPriceException {
         PriceDto priceDto = buildPriceDto(priceCommand);
         priceDto.setProductId(productId);
-        try {
-            priceDto = priceService.save(priceDto).orElseThrow(InvalidPriceException::new);
-        } catch (InvalidPriceException e) {
-            logger.error("In class {} method handleCreate() couldn't save next object: {}, and get next:\n{}",
-                    PriceCommandHandlerImpl.class.getSimpleName(), priceDto, e);
-        }
-        return priceDto;
+        return priceService.save(priceDto).get();
     }
 
     @Override
-    public PriceDto handleUpdate(String id, PriceCommand priceCommand) {
+    public PriceDto handleUpdate(String id, PriceCommand priceCommand) throws InvalidPriceException {
         PriceDto priceToUpdate = buildPriceDto(priceCommand);
         priceToUpdate.setId(id);
-        try {
-            priceToUpdate = priceService.update(priceToUpdate);
-        } catch (InvalidPriceException e) {
-            logger.error("In class {} method handleUpdate() couldn't update next object: {}, and get next:\n{}",
-                    PriceCommandHandlerImpl.class.getSimpleName(), priceToUpdate, e);
-        }
-        return priceToUpdate;
+        return priceService.update(priceToUpdate);
     }
 
     @Override
-    public String handleDelete(String id) {
-        try {
-            if (priceService.delete(id).isPresent()) {
-                return id;
-            } else {
-                throw new IllegalArgumentException();
-            }
-        } catch (InvalidDtoException | IllegalArgumentException e) {
-            logger.error("In class {} method handleDelete() couldn't delete object wit id {}, and get next:\n{}",
-                    PriceCommandHandlerImpl.class.getSimpleName(), id, e);
-        }
-        return "";
+    public String handleDelete(String id) throws InvalidDtoException {
+        return priceService.delete(id).get().getId();
     }
 
     private PriceDto buildPriceDto(PriceCommand priceCommand) {

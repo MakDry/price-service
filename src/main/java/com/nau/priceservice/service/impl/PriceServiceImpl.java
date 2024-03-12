@@ -44,7 +44,7 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
                 || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to save(): {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("Not all PriceDto fields have been filled in to save object");
         }
         PriceEntity savedPrice = priceDao.save(dtoMapper.mapFromDto(priceDto)).get();
         return Optional.of(dtoMapper.mapToDto(savedPrice));
@@ -57,7 +57,7 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
                 || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to update(): {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("Not all PriceDto fields have been filled in to update object");
         }
 
         PriceEntity priceToUpdate = dtoMapper.mapFromDto(priceDto);
@@ -65,7 +65,7 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
         if (priceDao.findById(priceDto.getId()).isEmpty()) {
             logger.warn("In class {} in method update() wasn't found any entities with id: {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto.getId());
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("No suitable Price entity was found to update");
         } else {
             priceToUpdate.setProductId(priceDao.findById(priceDto.getId()).get(0).getProductId());
             if (priceDao.update(priceToUpdate)) {
@@ -73,7 +73,7 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
             } else {
                 logger.error("In class {} method update() couldn't update next entity properly: {}",
                         PriceServiceImpl.class.getSimpleName(), priceToUpdate);
-                throw new InvalidPriceException();
+                throw new InvalidPriceException("Failed to update Price object");
             }
         }
     }
@@ -85,7 +85,7 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
         if (priceToDelete == null) {
             logger.warn("In class {} method delete() couldn't find any entity with id: {}",
                     PriceServiceImpl.class.getSimpleName(), id);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("No suitable Price entity was found to delete");
         } else {
             priceDao.delete(priceToDelete);
         }
