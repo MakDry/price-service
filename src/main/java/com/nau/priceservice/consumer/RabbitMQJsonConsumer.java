@@ -1,6 +1,7 @@
 package com.nau.priceservice.consumer;
 
 import ch.qos.logback.classic.Logger;
+import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.module.product.ProductCommand;
 import com.nau.priceservice.module.product.interfaces.ProductCommandHandler;
 import com.nau.priceservice.util.dto.ProductDto;
@@ -21,6 +22,11 @@ public class RabbitMQJsonConsumer {
     public void consumeJsonProductMassage(ProductCommand productCommand) {
         logger.info("In class {} method consumeJsonProductMassage() received JSON message -> {}",
                 RabbitMQJsonConsumer.class.getSimpleName(), productCommand);
-        productCommandHandler.handleCreate(productCommand);
+        try {
+            productCommandHandler.handleCreate(productCommand);
+        } catch (InvalidProductException e) {
+            logger.info("In class {} was send entity without initialized fields, to save(): {}",
+                    RabbitMQJsonConsumer.class.getSimpleName(), productCommand);
+        }
     }
 }

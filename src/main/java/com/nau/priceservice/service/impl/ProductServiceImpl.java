@@ -42,7 +42,7 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
         if (productDto.getExternalId().equals("") || productDto.getTitle().equals("")) {
             logger.error("In class {} was send entity without initialized fields, to save(): {}",
                     ProductServiceImpl.class.getSimpleName(), productDto);
-            throw new InvalidProductException();
+            throw new InvalidProductException("Not all ProductDto fields have been filled in to save object");
         }
         ProductEntity savedProduct = productDao.save(dtoMapper.mapFromDto(productDto)).get();
         return Optional.of(dtoMapper.mapToDto(savedProduct));
@@ -53,13 +53,13 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
         if (productDto.getId().equals("") || productDto.getTitle().equals("")) {
             logger.error("In class {} was send entity without initialized fields, to update(): {}",
                     ProductServiceImpl.class.getSimpleName(), productDto);
-            throw new InvalidProductException();
+            throw new InvalidProductException("Not all ProductDto fields have been filled in to update object");
         }
 
         if (!productDao.isExists(productDto.getId())) {
             logger.warn("In class {} in method update() wasn't found any entities with id: {}",
                     ProductServiceImpl.class.getSimpleName(), productDto.getId());
-            throw new InvalidProductException();
+            throw new InvalidProductException("No suitable Product entity was found to update");
         } else {
             ProductEntity productToUpdate = productDao.findById(productDto.getId()).get(0);
             productToUpdate.setTitle(productDto.getTitle());
@@ -68,7 +68,7 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
             } else {
                 logger.error("In class {} method update() couldn't update next entity properly: {}",
                         ProductServiceImpl.class.getSimpleName(), productToUpdate);
-                throw new InvalidProductException();
+                throw new InvalidProductException("Failed to update Product object");
             }
         }
     }
@@ -78,12 +78,11 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
         if (!productDao.isExists(id)) {
             logger.warn("In class {} method delete() couldn't find any entity with id: {}",
                     ProductServiceImpl.class.getSimpleName(), id);
-            throw new InvalidProductException();
+            throw new InvalidProductException("No suitable Product entity was found to delete");
         }
 
         ProductEntity productToDelete = productDao.findById(id).get(0);
         productDao.delete(productToDelete);
-
         return Optional.of(dtoMapper.mapToDto(productToDelete));
     }
 
