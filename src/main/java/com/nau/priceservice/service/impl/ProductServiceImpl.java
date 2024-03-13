@@ -1,7 +1,7 @@
 package com.nau.priceservice.service.impl;
 
 import ch.qos.logback.classic.Logger;
-import com.nau.priceservice.data.dao.interfaces.ProductDao;
+import com.nau.priceservice.data.dao.interfaces.ProductRepository;
 import com.nau.priceservice.data.entity.ProductEntity;
 import com.nau.priceservice.exceptions.product.InvalidProductException;
 import com.nau.priceservice.service.interfaces.ProductService;
@@ -21,11 +21,11 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
 
     private static final Logger logger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
-    private ProductDao<ProductEntity, String> productDao;
+    private ProductRepository productDao;
     private DtoMapper<ProductDto, ProductEntity> dtoMapper;
 
     @Autowired
-    public ProductServiceImpl(ProductDao<ProductEntity, String> productDao, DtoMapper<ProductDto, ProductEntity> dtoMapper) {
+    public ProductServiceImpl(ProductRepository productDao, DtoMapper<ProductDto, ProductEntity> dtoMapper) {
         this.productDao = productDao;
         this.dtoMapper = dtoMapper;
     }
@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
                     ProductServiceImpl.class.getSimpleName(), productDto);
             throw new InvalidProductException("Not all ProductDto fields have been filled in to save object");
         }
-        ProductEntity savedProduct = productDao.save(dtoMapper.mapFromDto(productDto)).get();
+        ProductEntity savedProduct = productDao.save(dtoMapper.mapFromDto(productDto));
         return Optional.of(dtoMapper.mapToDto(savedProduct));
     }
 
@@ -56,38 +56,32 @@ public class ProductServiceImpl implements ProductService<ProductDto> {
             throw new InvalidProductException("Not all ProductDto fields have been filled in to update object");
         }
 
-        if (!productDao.isExists(productDto.getId())) {
+        if (!productDao.existsById(productDto.getId())) {
             logger.warn("In class {} in method update() wasn't found any entities with id: {}",
                     ProductServiceImpl.class.getSimpleName(), productDto.getId());
             throw new InvalidProductException("No suitable Product entity was found to update");
         } else {
-            ProductEntity productToUpdate = productDao.findById(productDto.getId()).get(0);
+            ProductEntity productToUpdate = productDao.findById(productDto.getId()).get();
             productToUpdate.setTitle(productDto.getTitle());
-            if (productDao.update(productToUpdate)) {
-                return dtoMapper.mapToDto(productToUpdate);
-            } else {
-                logger.error("In class {} method update() couldn't update next entity properly: {}",
-                        ProductServiceImpl.class.getSimpleName(), productToUpdate);
-                throw new InvalidProductException("Failed to update Product object");
-            }
+            return dtoMapper.mapToDto(productDao.save(productToUpdate));
         }
     }
 
     @Override
     public Optional<ProductDto> delete(String id) throws InvalidProductException {
-        if (!productDao.isExists(id)) {
+        if (!productDao.existsById(id)) {
             logger.warn("In class {} method delete() couldn't find any entity with id: {}",
                     ProductServiceImpl.class.getSimpleName(), id);
             throw new InvalidProductException("No suitable Product entity was found to delete");
         }
 
-        ProductEntity productToDelete = productDao.findById(id).get(0);
+        ProductEntity productToDelete = productDao.findById(id).get();
         productDao.delete(productToDelete);
         return Optional.of(dtoMapper.mapToDto(productToDelete));
     }
 
     @Override
     public boolean isExists(String id) {
-        return productDao.isExists(id);
+        return productDao.existsById(id);
     }
 }
