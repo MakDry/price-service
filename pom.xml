@@ -88,6 +88,13 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>2.0.12</version>
 		</dependency>
+
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -124,5 +131,10 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
 	</build>
 </project>
