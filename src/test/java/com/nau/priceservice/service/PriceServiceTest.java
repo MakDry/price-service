@@ -1,5 +1,6 @@
 package com.nau.priceservice.service;
 
+
 import com.nau.priceservice.data.dao.interfaces.PriceRepository;
 import com.nau.priceservice.data.entity.PriceEntity;
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
