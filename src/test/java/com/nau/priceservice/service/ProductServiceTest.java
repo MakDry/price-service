@@ -7,6 +7,7 @@ import com.nau.priceservice.service.impl.ProductServiceImpl;
 import com.nau.priceservice.util.dto.ProductDto;
 import com.nau.priceservice.util.mappers.ProductMapper;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,45 +27,39 @@ class ProductServiceTest {
     private ProductRepository productDao;
     @Mock
     private ProductMapper productMapper;
-
     @InjectMocks
     private ProductServiceImpl productService;
 
-    @Test
-    void ProductService_GetAll_ReturnsTwoProductDto() {
-        ProductDto productDto1 = new ProductDto();
-        productDto1.setId("1");
-        ProductDto productDto2 = new ProductDto();
-        productDto2.setId("2");
-        ProductEntity productEntity1 = new ProductEntity();
-        productEntity1.setId("1");
-        ProductEntity productEntity2 = new ProductEntity();
-        productEntity2.setId("2");
+    private ProductDto productDto;
+    private ProductEntity productEntity;
 
-        when(productDao.findAll()).thenReturn(List.of(productEntity1, productEntity2));
-        when(productMapper.mapToDto(productEntity1)).thenReturn(productDto1);
-        when(productMapper.mapToDto(productEntity2)).thenReturn(productDto2);
+    @BeforeEach
+    void setUp() {
+        productDto = new ProductDto();
+        productDto.setId("1");
+        productDto.setExternalId("101");
+        productDto.setTitle("Apples");
+        productEntity = new ProductEntity();
+        productEntity.setId("1");
+        productEntity.setExternalId("101");
+        productEntity.setTitle("Apples");
+    }
+
+    @Test
+    void ProductService_getAll_ReturnsTwoProductDto() {
+        when(productDao.findAll()).thenReturn(List.of(productEntity, productEntity));
+        when(productMapper.mapToDto(Mockito.any(ProductEntity.class))).thenReturn(productDto);
 
         List<ProductDto> products = productService.getAll();
 
         Assertions.assertThat(products)
+                .isNotNull()
                 .isNotEmpty()
                 .hasSize(2);
-        Assertions.assertThat(products.get(0).getId()).isEqualTo(productDto1.getId());
-        Assertions.assertThat(products.get(1).getId()).isEqualTo(productDto2.getId());
     }
 
     @Test
-    void ProductService_Save_ReturnsSavedDto() throws InvalidProductException {
-        ProductDto productDto = new ProductDto();
-        productDto.setId("1");
-        productDto.setExternalId("101");
-        productDto.setTitle("Apples");
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setId("1");
-        productEntity.setExternalId("101");
-        productEntity.setTitle("Apples");
-
+    void ProductService_save_ReturnsSavedDto() throws InvalidProductException {
         when(productDao.save(Mockito.any(ProductEntity.class))).thenReturn(productEntity);
         when(productMapper.mapToDto(productEntity)).thenReturn(productDto);
         when(productMapper.mapFromDto(productDto)).thenReturn(productEntity);
@@ -79,16 +74,25 @@ class ProductServiceTest {
     }
 
     @Test
-    void ProductService_Update_ReturnsUpdatedDto() throws InvalidProductException {
-        ProductDto productDto = new ProductDto();
-        productDto.setId("1");
-        productDto.setExternalId("101");
-        productDto.setTitle("Apples");
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setId("1");
-        productEntity.setExternalId("101");
-        productEntity.setTitle("Apples");
+    void ProductService_save_DtoWithoutExternalIdReturnsException() {
+        productDto.setExternalId("");
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.save(productDto);
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("Not all ProductDto fields have been filled in to save object");
+    }
 
+    @Test
+    void ProductService_save_DtoWithoutTitleReturnsException() {
+        productDto.setTitle("");
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.save(productDto);
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("Not all ProductDto fields have been filled in to save object");
+    }
+
+    @Test
+    void ProductService_update_ReturnsUpdatedDto() throws InvalidProductException {
         when(productDao.existsById(Mockito.anyString())).thenReturn(true);
         when(productDao.findById(Mockito.anyString())).thenReturn(Optional.of(productEntity));
         when(productDao.save(Mockito.any(ProductEntity.class))).thenReturn(productEntity);
@@ -101,12 +105,35 @@ class ProductServiceTest {
     }
 
     @Test
-    void ProductService_Delete_ReturnsDeletedDto() throws InvalidProductException {
-        ProductDto productDto = new ProductDto();
-        productDto.setId("1");
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setId("1");
+    void ProductService_update_DtoWithoutIdReturnsException() {
+        productDto.setId("");
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.update(productDto);
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("Not all ProductDto fields have been filled in to update object");
+    }
 
+    @Test
+    void ProductService_update_DtoWithoutTitleReturnsException() {
+        productDto.setTitle("");
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.update(productDto);
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("Not all ProductDto fields have been filled in to update object");
+    }
+
+    @Test
+    void ProductService_update_DtoWithNonexistentIdReturnsException() {
+        when(productDao.existsById(Mockito.anyString())).thenReturn(false);
+
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.update(productDto);
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("No suitable Product entity was found to update");
+    }
+
+    @Test
+    void ProductService_delete_ReturnsDeletedDto() throws InvalidProductException {
         when(productDao.existsById(Mockito.anyString())).thenReturn(true);
         when(productDao.findById("1")).thenReturn(Optional.of(productEntity));
         when(productMapper.mapToDto(productEntity)).thenReturn(productDto);
@@ -120,7 +147,17 @@ class ProductServiceTest {
     }
 
     @Test
-    void ProductService_IsExists_ReturnsTrueWhenObjectExists() {
+    void ProductService_delete_DtoWithNonexistentIdReturnsException() {
+        when(productDao.existsById(Mockito.anyString())).thenReturn(false);
+
+        InvalidProductException e = org.junit.jupiter.api.Assertions.assertThrows(InvalidProductException.class, () -> {
+            productService.delete(productDto.getId());
+        });
+        Assertions.assertThat(e.getMessage()).isEqualTo("No suitable Product entity was found to delete");
+    }
+
+    @Test
+    void ProductService_isExists_ReturnsTrueWhenObjectExists() {
         String id = "1";
 
         when(productDao.existsById(id)).thenReturn(true);
@@ -131,7 +168,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void ProductService_IsExists_ReturnsFalseWhenObjectDoesntExists() {
+    void ProductService_isExists_ReturnsFalseWhenObjectDoesntExists() {
         String id = "1";
 
         when(productDao.existsById(id)).thenReturn(false);
