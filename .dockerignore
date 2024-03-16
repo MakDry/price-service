@@ -1,0 +1,2 @@
+src/test/java/com/nau/priceservice/data/dao
+src/test/java/com/nau/priceservice/MongoDBTestContainerConfig.java
