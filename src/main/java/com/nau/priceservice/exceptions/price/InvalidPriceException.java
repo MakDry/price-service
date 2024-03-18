@@ -1,6 +1,8 @@
 package com.nau.priceservice.exceptions.price;
 
-public class InvalidPriceException extends Throwable {
+import com.nau.priceservice.exceptions.InvalidDtoException;
+
+public class InvalidPriceException extends InvalidDtoException {
 
     public InvalidPriceException() { }
 

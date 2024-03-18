@@ -1,7 +1,7 @@
 package com.nau.priceservice.service.impl;
 
 import ch.qos.logback.classic.Logger;
-import com.nau.priceservice.data.dao.interfaces.PriceDao;
+import com.nau.priceservice.data.dao.interfaces.PriceRepository;
 import com.nau.priceservice.data.entity.PriceEntity;
 import com.nau.priceservice.exceptions.price.InvalidPriceException;
 import com.nau.priceservice.service.interfaces.PriceService;
@@ -21,20 +21,13 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
 
     private static final Logger logger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.baeldung.logback");
-    private PriceDao<PriceEntity, String> priceDao;
+    private PriceRepository priceDao;
     private DtoMapper<PriceDto, PriceEntity> dtoMapper;
 
     @Autowired
-    public PriceServiceImpl(PriceDao<PriceEntity, String> priceDao, DtoMapper<PriceDto, PriceEntity> dtoMapper) {
+    public PriceServiceImpl(PriceRepository priceDao, DtoMapper<PriceDto, PriceEntity> dtoMapper) {
         this.priceDao = priceDao;
         this.dtoMapper = dtoMapper;
-    }
-
-    @Override
-    public List<PriceDto> getById(String id) {
-        return priceDao.findById(id).stream()
-                .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
-                .toList();
     }
 
     @Override
@@ -46,54 +39,63 @@ public class PriceServiceImpl implements PriceService<PriceDto> {
 
     @Override
     public Optional<PriceDto> save(PriceDto priceDto) throws InvalidPriceException {
-        if (priceDto.getCurrency() == null || priceDto.getUnitAmount() == 0 || priceDto.getUnitAmountDecimal() == 0.0
-            || priceDto.getPurchasePrice() == 0 || priceDto.getSuggestedAmount() == 0) {
+        if (priceDto.getProductId().equals("") || priceDto.getCurrency().equals("") || priceDto.getUnitAmount() == 0
+                || priceDto.getUnitAmountDecimal() == 0.0 || priceDto.getPurchasePrice() == 0
+                || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to save(): {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("Not all PriceDto fields have been filled in to save object");
         }
-        PriceEntity savedPrice = priceDao.save(dtoMapper.mapFromDto(priceDto)).get();
+        PriceEntity savedPrice = priceDao.save(dtoMapper.mapFromDto(priceDto));
         return Optional.of(dtoMapper.mapToDto(savedPrice));
     }
 
     @Override
-    public boolean update(PriceDto priceDto) throws InvalidPriceException {
-        if (priceDto.getId().equals("") || priceDto.getCurrency() == null || priceDto.getUnitAmount() == 0
+    public PriceDto update(PriceDto priceDto) throws InvalidPriceException {
+        if (priceDto.getId().equals("") || priceDto.getCurrency().equals("") || priceDto.getUnitAmount() == 0
                 || priceDto.getUnitAmountDecimal() == 0.0 || priceDto.getPurchasePrice() == 0
                 || priceDto.getSuggestedAmount() == 0) {
             logger.error("In class {} was send entity without initialized fields, to update(): {}",
                     PriceServiceImpl.class.getSimpleName(), priceDto);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("Not all PriceDto fields have been filled in to update object");
         }
 
-        PriceEntity updatedPrice = dtoMapper.mapFromDto(priceDto);
+        PriceEntity priceToUpdate = dtoMapper.mapFromDto(priceDto);
 
-        if (priceDao.findById(priceDto.getId()).isEmpty()) {
-            updatedPrice.setId("");
-            priceDao.save(updatedPrice);
-            return true;
+        if (!priceDao.existsById(priceDto.getId())) {
+            logger.warn("In class {} in method update() wasn't found any entities with id: {}",
+                    PriceServiceImpl.class.getSimpleName(), priceDto.getId());
+            throw new InvalidPriceException("No suitable Price entity was found to update");
         } else {
-            if (priceDao.update(updatedPrice)) {
-                return true;
-            } else {
-                logger.warn("In class {} method update() couldn't update next entity properly: {}",
-                        PriceServiceImpl.class.getSimpleName(), updatedPrice);
-                throw new InvalidPriceException();
-            }
+            priceToUpdate.setProductId(priceDao.findById(priceDto.getId()).get().getProductId());
+            return dtoMapper.mapToDto(priceDao.save(priceToUpdate));
         }
     }
 
     @Override
     public Optional<PriceDto> delete(String id) throws InvalidPriceException {
-        PriceEntity foundEntity = priceDao.findById(id).get(0);
+        Optional<PriceEntity> priceToDelete = priceDao.findById(id);
 
-        if (foundEntity == null) {
+        if (priceToDelete.isEmpty()) {
             logger.warn("In class {} method delete() couldn't find any entity with id: {}",
                     PriceServiceImpl.class.getSimpleName(), id);
-            throw new InvalidPriceException();
+            throw new InvalidPriceException("No suitable Price entity was found to delete");
         } else {
-            priceDao.delete(foundEntity);
+            priceDao.delete(priceToDelete.get());
         }
-        return Optional.ofNullable(dtoMapper.mapToDto(foundEntity));
+        return Optional.of(dtoMapper.mapToDto(priceToDelete.get()));
+    }
+
+    @Override
+    public List<PriceDto> getAllPricesOfProduct(String productId) {
+        return priceDao.findAllByProductId(productId).stream()
+                .map(priceEntity -> dtoMapper.mapToDto(priceEntity))
+                .toList();
+    }
+
+    @Override
+    public Optional<PriceDto> getOnePriceOfProduct(String id, String productId) throws InvalidPriceException {
+        return Optional.ofNullable(dtoMapper.mapToDto(priceDao.findByIdAndProductId(id, productId)
+                .orElseThrow(InvalidPriceException::new)));
     }
 }

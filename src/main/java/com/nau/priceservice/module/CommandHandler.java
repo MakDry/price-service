@@ -1,9 +1,7 @@
 package com.nau.priceservice.module;
 
+import com.nau.priceservice.exceptions.InvalidDtoException;
+
 public interface CommandHandler<T, K> {
-    T handleCreate(K k);
-
-    T handleUpdate(String id, K k);
-
-    String handleDelete(String id);
+    T handleUpdate(String id, K k) throws InvalidDtoException;
 }
